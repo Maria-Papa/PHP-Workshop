@@ -2,8 +2,6 @@
 Welcome to this hands-on workshop! This project is designed to help experienced PHP backend developers like yourself sharpen your skills and prepare for technical interviews by building a real-world Laravel application using Docker.
 
 
-TODOOOOOOOOOOOOOO - ADD SOMETHING ABOUT PHASES (WORKSHOPS)
-
 ## Table Of Contents
 - [✅ Prerequisites](#-prerequisites)
 - [⚠️ AI Assistance Disclaimer](#️-ai-assistance-disclaimer)
@@ -68,27 +66,33 @@ Set the env variables `UID` and `GID`.
 
 ### 3. Start the Docker Compose Services
 This command will build the PHP-FPM image (including necessary extensions and Composer), then start all services: Nginx, PHP-FPM, PostgreSQL, MongoDB, and Redis.
+
+> **Note:** Run the `make` commands from the **project root directory**.  
+> Run the `docker-compose` commands from the **`docker/` directory**.
+
 ```bash
 make start
 # or
-cd docker
 docker-compose up --build -d
 ```
+
 > The first time you run this, it may take several minutes while Docker downloads base images and builds your containers.
 
 ### 4. Laravel Setup
 Generate the application key:
+
+> **Note:** Run the `make` commands from the **project root directory**.  
+> Run the `docker-compose` commands from the **`docker/` directory**.
+
 ```bash
 make keygen
 # or
-cd docker
 docker-compose exec app php artisan key:generate
 ```
 Run migrations:
 ```bash
 make migrate
 # or
-cd docker
 docker-compose exec app php artisan migrate --force
 ```
 
@@ -112,7 +116,7 @@ Each phase includes:
 
 > 💡 **Tip:** As you complete each phase, follow the navigation links at the bottom of each file to move to the next phase.
 
-Once you’ve read the instructions in a phase (e.g. `phase_1.md`), go back to your Laravel project and implement the tasks described.
+Once you’ve read the instructions in a phase, go back to your Laravel project and implement the tasks described.
 
 > 🔁 **Remember:** Commit your changes regularly to your `master` branch to keep track of your progress and ensure you don’t lose work.
 
@@ -130,6 +134,10 @@ docker-compose exec app npm install
 
 
 ### 🧪 Useful Commands
+
+> **Note:** Run the `make` commands from the **project root directory**.  
+> Run the `docker-compose` commands from the **`docker/` directory**.
+
 #### 🛠️ Makefile Commands
 | Command                 | Description                            |
 | ----------------------- | -------------------------------------- |
@@ -148,11 +156,6 @@ docker-compose exec app npm install
 | `make logs`             | Tail Laravel container logs            |
 
 #### 🐳 Docker Compose Equivalents
-> **Note:** Remember to go inside `docker-compose.yml`'s directory before running the docker compose commands.
-> ```bash
-> cd docker
-> ```
-
 | Task                      | Docker Compose Command                                                                  |
 | ------------------------- | --------------------------------------------------------------------------------------- |
 | Start containers          | `docker-compose up -d --build`                             |
