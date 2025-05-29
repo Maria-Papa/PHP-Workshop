@@ -53,7 +53,13 @@ keygen:
 	cp $(SRC_DIR)/.env .env.docker || { \
 		echo "❌ Failed to sync .env to .env.docker"; exit 1; \
 	}; \
-	echo "✅ APP_KEY updated"
+	echo "♻️  Re-caching Laravel config..."; \
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan config:clear; \
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan config:cache; \
+	echo "🔄 Reloading PHP-FPM (if available)..."; \
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app sh -c "kill -USR2 1 || pkill -o -USR2 php-fpm || killall -USR2 php-fpm || true"; \
+	echo "✅ APP_KEY updated, config reloaded"
+
 
 # Run migrations manually
 migrate:
@@ -87,16 +93,10 @@ clean:
 		for image in nginx:alpine redis:8.0.1-alpine mongo:7.0-jammy postgres:15-alpine; do \
 			docker rmi -f "$$image" || true; \
 		done; \
-		echo "Cleanup complete."; \
+		echo "✅ Cleanup complete."; \
 	else \
-		echo "Aborted."; \
+		echo "❌ Aborted."; \
 	fi
-
-# Fix permissions locally (useful before build or running containers)
-fix-permissions:
-	sudo chown -R $(UID):$(GID) src/.env src/storage src/bootstrap/cache
-	sudo chmod -R 775 src/storage src/bootstrap/cache
-	sudo chmod 644 src/.env
 
 # Rebuild and restart
 restart: down build up
