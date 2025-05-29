@@ -9,7 +9,6 @@ done
 echo "✅ PostgreSQL is ready."
 
 echo "🔧 Fixing Laravel permissions..."
-# No chown — user already owns files (host UID:GID)
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 echo "🔧 Clearing and caching Laravel config..."

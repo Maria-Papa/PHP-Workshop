@@ -38,11 +38,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
-COPY ./src /var/www/html
+# Copy application files (This will be overridden by volume mounting in dev)
+COPY ../src /var/www/html
 
 # Copy custom entrypoint script
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set ownership (optional)

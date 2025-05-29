@@ -1,7 +1,8 @@
-# Makefile
-
 # Define source directory
 SRC_DIR=src
+
+# Define docker-compose file path
+COMPOSE_FILE=docker/docker-compose.yml
 
 # Export current user UID and GID for docker-compose usage
 export UID := $(shell id -u)
@@ -24,15 +25,15 @@ init:
 
 # Build Docker images, passing UID/GID environment variables
 build:
-	UID=$(UID) GID=$(GID) docker-compose build
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) build
 
 # Start containers, passing UID/GID environment variables
 up:
-	UID=$(UID) GID=$(GID) docker-compose up -d
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) up -d
 
 # Stop containers
 down:
-	UID=$(UID) GID=$(GID) docker-compose down
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) down
 
 # Generate app key manually
 keygen:
@@ -43,7 +44,7 @@ keygen:
 	fi; \
 	sudo chown -R $$(id -u):$$(id -g) $(SRC_DIR); \
 	echo "🔑 Generating new APP_KEY..."; \
-	NEW_KEY=$$(UID=$(UID) GID=$(GID) docker-compose exec -T app php artisan key:generate --show) || { \
+	NEW_KEY=$$(UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan key:generate --show) || { \
 		echo "❌ Failed to generate APP_KEY"; exit 1; \
 	}; \
 	sed -i.bak "s|^APP_KEY=.*|APP_KEY=$$NEW_KEY|" $(SRC_DIR)/.env || { \
@@ -56,26 +57,37 @@ keygen:
 
 # Run migrations manually
 migrate:
-	UID=$(UID) GID=$(GID) docker-compose exec app php artisan migrate --force
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec app php artisan migrate --force
 
 # Run artisan commands
 artisan:
-	UID=$(UID) GID=$(GID) docker-compose exec app php artisan $(filter-out $@,$(MAKECMDGOALS)) $(ARGS)
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec app php artisan $(filter-out $@,$(MAKECMDGOALS)) $(ARGS)
 
 # Run tests
 test:
-	UID=$(UID) GID=$(GID) docker-compose exec app php artisan test
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec app php artisan test
 
 # Tail logs
 logs:
-	docker-compose logs -f app
+	docker-compose -f $(COMPOSE_FILE) logs -f app
 
 # Remove Laravel & Clean Docker
 clean:
 	@read -p "Are you sure you want to delete src/ and bring down and clean containers (y/N)? " ans; \
 	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
+		echo "Deleting src/ directory..."; \
 		sudo rm -rf src/; \
-		UID=$(UID) GID=$(GID) docker-compose down --volumes --rmi all; \
+		echo "Stopping containers..."; \
+		UID=$(UID) GID=$(GID) docker-compose -f docker/docker-compose.yml down; \
+		echo "Force removing containers..."; \
+		docker ps -aq --filter "name=laravel-" | xargs -r docker rm -f; \
+		echo "Removing volumes..."; \
+		UID=$(UID) GID=$(GID) docker-compose -f docker/docker-compose.yml down --volumes; \
+		echo "Removing images..."; \
+		for image in nginx:alpine redis:8.0.1-alpine mongo:7.0-jammy postgres:15-alpine; do \
+			docker rmi -f "$$image" || true; \
+		done; \
+		echo "Cleanup complete."; \
 	else \
 		echo "Aborted."; \
 	fi
