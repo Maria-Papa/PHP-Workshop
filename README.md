@@ -5,4 +5,8 @@ A PHP Workshop to help you prepare for a Backend Engineer Interview
 
 2. `sudo apt install make -y`
 
-3. `make start`
+```
+make start       # builds Laravel without generating key or migrating
+make keygen      # manually generate APP_KEY
+make migrate     # manually run database migrations
+```

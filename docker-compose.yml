@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    user: "${UID}:${GID}"
     container_name: laravel-app
     restart: unless-stopped
     working_dir: /var/www/html
