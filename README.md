@@ -13,6 +13,7 @@ Welcome to this hands-on workshop! This project is designed to help experienced 
     - [4. Laravel Setup](#4-laravel-setup)
     - [5. View the App](#5-view-the-app)
 - [🧑‍💻 Continuing the Workshop](#-continuing-the-workshop)
+    - [📚 Phases](#-phases)
     - [🧪 Useful Commands](#-useful-commands)
         - [🛠️ Makefile Commands](#️-makefile-commands)
         - [🐳 Docker Compose Equivalents](#-docker-compose-equivalents)
@@ -107,7 +108,7 @@ You should see the default Laravel welcome page!
 ## 🧑‍💻 Continuing the Workshop
 You're all set to start the hands-on workshop exercises!
 
-The workshop is structured into **phases**, each located in the [`workshop_docs/`](./workshop_docs/) folder. These Markdown files (`phase_0.md`, `phase_1.md`, etc.) will guide you through implementing features step-by-step using real backend concepts.
+The workshop is structured into **phases**, each located in the [`workshop_docs/`](./workshop_docs/) folder. These Markdown files (`phase_1.md`, `phase_2.md` etc.) will guide you through implementing features step-by-step using real backend concepts.
 
 Each phase includes:
 - Clear learning objectives.
@@ -119,6 +120,12 @@ Each phase includes:
 Once you’ve read the instructions in a phase, go back to your Laravel project and implement the tasks described.
 
 > 🔁 **Remember:** Commit your changes regularly to your `master` branch to keep track of your progress and ensure you don’t lose work.
+
+### 📚 Phases
+- [Phase 1: Restaurant & Menu Management (REST APIs, SOLID, Design Patterns, Postgres)](workshop_docs/phase_1.md)
+- [Phase 2: Order Management & Advanced Patterns (REST APIs, Design Patterns, Redis, Postgres)](workshop_docs/phase_2.md)
+- [Phase 3: Python Microservice & Inter-Service Communication (Microservices, Python, REST APIs, Scalability)](workshop_docs/phase_3.md)
+- [Phase 4: Interview-Specific Scenarios & Discussions](workshop_docs/phase_4.md)
 
 
 ### ✅ Switching to the Solution Branch
