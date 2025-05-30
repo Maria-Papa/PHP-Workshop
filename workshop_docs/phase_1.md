@@ -7,8 +7,8 @@
 ### Instructions
 
 1. **Database Migrations (Postgres):**
-    - Create migrations for `cuisine_type` table (id, name).
-    - Create migrations for `restaurants` table (id, name, address, cuisine_type_id, status - e.g., 'open', 'closed'). Ensure cuisine_type_id is a **foreign key** referencing the `cuisine_type` table.
+    - Create migrations for `cuisine_types` table (id, name).
+    - Create migrations for `restaurants` table (id, name, address, cuisine_type_id, status - e.g., 'open', 'closed'). Ensure cuisine_type_id is a **foreign key** referencing the `cuisine_types` table.
     - Create migrations for `menu_items` table (id, restaurant_id, name, description, price, is_available). Ensure restaurant_id is a **foreign key** referencing the `restaurants` table.
     - Run migrations.
 
@@ -24,7 +24,7 @@
 
 3. **Restaurant API:**
     - **Resource Controller:** Create `RestaurantController` with `index`, `show`, `store`, `update`, `destroy` methods.
-    - **Request Validation:** Implement Laravel Form Requests for `store` and `update` methods to ensure data integrity. It is crucial to validate that `cuisine_type_id` is present and refers to an existing `cuisine_type` in your database.
+    - **Request Validation:** Implement Laravel Form Requests for `store` and `update` methods to ensure data integrity. It is crucial to validate that `cuisine_type_id` is present and refers to an existing `cuisine_types` in your database.
     - **Repository Pattern:**
         - Create a `Contracts/RestaurantRepositoryInterface.php`.
         - Create an `EloquentRestaurantRepository.php` that implements the interface.
@@ -41,7 +41,7 @@
 ### Self-Check/Reflection
 - Can you create, retrieve, update, and delete cuisine types, restaurants, and menu items via your API?
 - Have you correctly applied the Repository Pattern across all relevant resources and understood its benefits (e.g., testability, decoupling)?
-- How does the `cuisine_type` table improve data integrity and flexibility compared to a direct string field, and how does its dedicated API support this?
+- How does the `cuisine_types` table improve data integrity and flexibility compared to a direct string field, and how does its dedicated API support this?
 - Where else in this phase could you apply SOLID principles (e.g., separating validation logic, transforming response data)?
 - What are the benefits of using Laravel's request validation for robust API development?
 
