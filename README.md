@@ -164,7 +164,7 @@ docker-compose exec app npm install
 
 #### 🐳 Docker Compose Equivalents
 | Task                      | Docker Compose Command                                                                  |
-| ------------------------- | --------------------------------------------------------------------------------------- |
+| ------------------------- | ---------------------------------------------------------- |
 | Start containers          | `docker-compose up -d --build`                             |
 | Stop containers           | `docker-compose stop`                                      |
 | Remove containers/volumes | `docker-compose down -v`                                   |
