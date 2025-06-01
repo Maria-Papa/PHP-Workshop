@@ -1,12 +1,12 @@
-# Define source directory
+# Define source and docker-compose paths
 SRC_DIR=src
-
-# Define docker-compose file path
 COMPOSE_FILE=docker/docker-compose.yml
 
-# Export current user UID and GID for docker-compose usage
+# Export user info for permission consistency inside containers
 export UID := $(shell id -u)
 export GID := $(shell id -g)
+
+# --- Setup Commands ---
 
 # Initialize Laravel project
 init:
@@ -18,16 +18,16 @@ init:
 			composer create-project laravel/laravel . --no-scripts; \
 		sudo chown -R $$(id -u):$$(id -g) $(SRC_DIR); \
 		cp .env.docker $(SRC_DIR)/.env; \
-		echo "✅ Laravel installed in $(SRC_DIR)"; \
+		echo "Laravel installed in $(SRC_DIR)"; \
 	else \
-		echo "✅ Laravel already exists in $(SRC_DIR)"; \
+		echo "Laravel already exists in $(SRC_DIR)"; \
 	fi
 
-# Build Docker images, passing UID/GID environment variables
+# Build Docker images
 build:
 	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) build
 
-# Start containers, passing UID/GID environment variables
+# Start containers
 up:
 	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) up -d
 
@@ -35,71 +35,85 @@ up:
 down:
 	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) down
 
-# Generate app key manually
+# Rebuild and restart
+restart: down build up
+
+# Full setup (Laravel + Docker, no keygen)
+start: init build up
+
+# --- Laravel Utility Commands ---
+
+# Generate application key and refresh config
 keygen:
 	@set -e; \
 	if [ ! -f $(SRC_DIR)/.env ]; then \
-		echo "⚠️  $(SRC_DIR)/.env not found. Creating it from .env.docker..."; \
+		echo "$(SRC_DIR)/.env not found. Creating it from .env.docker..."; \
 		cp .env.docker $(SRC_DIR)/.env; \
 	fi; \
 	sudo chown -R $$(id -u):$$(id -g) $(SRC_DIR); \
-	echo "🔑 Generating new APP_KEY..."; \
+	echo "Generating new APP_KEY..."; \
 	NEW_KEY=$$(UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan key:generate --show) || { \
-		echo "❌ Failed to generate APP_KEY"; exit 1; \
+		echo "Failed to generate APP_KEY"; exit 1; \
 	}; \
 	sed -i.bak "s|^APP_KEY=.*|APP_KEY=$$NEW_KEY|" $(SRC_DIR)/.env || { \
-		echo "❌ Failed to update APP_KEY in $(SRC_DIR)/.env"; exit 1; \
+		echo "Failed to update APP_KEY in $(SRC_DIR)/.env"; exit 1; \
 	}; \
 	cp $(SRC_DIR)/.env .env.docker || { \
-		echo "❌ Failed to sync .env to .env.docker"; exit 1; \
+		echo "Failed to sync .env to .env.docker"; exit 1; \
 	}; \
-	echo "♻️  Re-caching Laravel config..."; \
+	echo "Re-caching Laravel config..."; \
 	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan config:clear; \
 	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan config:cache; \
-	echo "🔄 Reloading PHP-FPM (if available)..."; \
+	echo "Reloading PHP-FPM..."; \
 	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app sh -c "kill -USR2 1 || pkill -o -USR2 php-fpm || killall -USR2 php-fpm || true"; \
-	echo "✅ APP_KEY updated, config reloaded"
+	echo "APP_KEY updated, config reloaded"
 
-
-# Run migrations manually
-migrate:
-	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec app php artisan migrate --force
-
-# Run artisan commands
+# Run Laravel artisan commands
+# Usage: make artisan ARGS="migrate"
 artisan:
-	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec app php artisan $(filter-out $@,$(MAKECMDGOALS)) $(ARGS)
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan $(ARGS)
 
 # Run tests
+# Usage: make test ARGS="--filter=test_example"
 test:
-	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec app php artisan test
+	-UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan test $(ARGS)
 
-# Tail logs
+# Run composer commands
+# Usage: make composer ARGS="require laravel/sanctum"
+composer:
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app composer $(ARGS)
+
+# Open shell in the app container
+bash:
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec app bash
+
+# Migrate with force (prod safe)
+migrate:
+	UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) exec -T app php artisan migrate --force
+
+# View Laravel logs
 logs:
 	docker-compose -f $(COMPOSE_FILE) logs -f app
 
-# Remove Laravel & Clean Docker
+# --- Clean-up Commands ---
+
+# Remove Laravel, containers, volumes, and images
 clean:
-	@read -p "Are you sure you want to delete src/ and bring down and clean containers (y/N)? " ans; \
+	@read -p "Are you sure you want to delete everything? (y/N): " ans; \
 	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
 		echo "Deleting src/ directory..."; \
 		sudo rm -rf src/; \
 		echo "Stopping containers..."; \
-		UID=$(UID) GID=$(GID) docker-compose -f docker/docker-compose.yml down; \
-		echo "Force removing containers..."; \
+		UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) down; \
+		echo "Removing containers..."; \
 		docker ps -aq --filter "name=laravel-" | xargs -r docker rm -f; \
 		echo "Removing volumes..."; \
-		UID=$(UID) GID=$(GID) docker-compose -f docker/docker-compose.yml down --volumes; \
-		echo "Removing images..."; \
+		UID=$(UID) GID=$(GID) docker-compose -f $(COMPOSE_FILE) down --volumes; \
+		echo "Removing default images..."; \
 		for image in nginx:alpine redis:8.0.1-alpine mongo:7.0-jammy postgres:15-alpine; do \
 			docker rmi -f "$$image" || true; \
 		done; \
-		echo "✅ Cleanup complete."; \
+		echo "Clean-up complete."; \
 	else \
-		echo "❌ Aborted."; \
+		echo "Aborted."; \
 	fi
-
-# Rebuild and restart
-restart: down build up
-
-# From scratch to up (no keygen/migrate)
-start: init build up
