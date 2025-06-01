@@ -72,6 +72,58 @@
     - **:5432:** The port number.
     - **/laravel:** The database name.
 
+2. **Cuisine Type API:**
+
+    #### A. Write a RED Test (TDD)
+
+    **Red Test:** A test that describes the desired API behavior. It should fail, because no controller or api route exists yet.
+
+    Create Test:
+    ```bash
+    make artisan ARGS="make:test CuisineTypeApiTest"
+    ```
+
+    Run Test (and watch it fail):
+    ```bash
+    make test ARGS="--filter getCuisineTypes"
+    ```
+
+    #### B. Build Just Enough to Pass (Green Test)
+
+    **Green Test:** The minimum code to make the test pass.
+
+    Enable API routing by using the `install:api` Artisan command:
+    ```bash
+    make artisan ARGS="install:api"
+    ```
+
+    Create a model and a factory:
+    ```bash
+    make artisan ARGS="make:model CuisineType --factory"
+    ```
+
+    Create the api controller and make the index function:
+    ```bash
+    make artisan ARGS="make:controller Api/CuisineTypeController"
+    ```
+
+    Add the route for the Controller request to `src/routes/api.php`.
+
+    Run the test again (it should pass).
+
+    #### C. Refactor
+
+    Add resource formatting:
+    ```bash
+    make artisan ARGS="make:resource CuisineTypeResource"
+    ```
+
+    Change index function inside CuisineTypeController.
+
+    ```bash
+    make artisan ARGS="make:rule UniqueCuisineName"
+    ```
+
 ## Reassignment Before Deletion (Keep in Mind)
 
 When you have a `parent record` (like a `cuisine_type`) that is referenced by child records (like `restaurants` via a foreign key), and you want to delete the parent without deleting the children, here's the typical application logic flow:
@@ -92,6 +144,10 @@ When you have a `parent record` (like a `cuisine_type`) that is referenced by ch
 - [Available Column Types](https://laravel.com/docs/12.x/migrations#available-column-types)
 - [Foreign Key Constraints](https://laravel.com/docs/12.x/migrations#foreign-key-constraints)
 - [Dropping Foreign Keys](https://laravel.com/docs/12.x/migrations#dropping-foreign-keys)
+- [Basic Controllers](https://laravel.com/docs/12.x/controllers#basic-controllers)
+- [Generating Model Classes](https://laravel.com/docs/12.x/eloquent#generating-model-classes)
+- [Creating Tests](https://laravel.com/docs/12.x/testing#creating-tests)
+- [API Routes](https://laravel.com/docs/12.x/routing#api-routes)
 
 ### PostgreSQL
 - [Connection URIs](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS)
